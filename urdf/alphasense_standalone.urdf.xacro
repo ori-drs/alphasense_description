@@ -17,9 +17,14 @@ limitations under the License.
 -->
 
 <robot name="alphasense_standalone" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:arg name="calib_file" default="$(find alphasense_description/urdf/calibrations/default_calibration.yaml"/>
+  <xacro:property name="calib_file" value="$(arg calib_file)"/>
+
   <xacro:include filename="$(find alphasense_description)/urdf/alphasense.urdf.xacro" />
+
   <link name="base" />
-  <xacro:alphasense parent="base">
+
+  <xacro:alphasense parent="base" calib_file="${calib_file}">
     <origin xyz="0 0 0" rpy="0 0 0" />
   </xacro:alphasense>
 </robot>
