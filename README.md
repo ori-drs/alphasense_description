@@ -54,7 +54,7 @@ cam0:
 
 if you run the following command:
 ```
-rosrun alphasense_description ~/my_calib/ my_calib.yaml
+rosrun alphasense_description kalibr_urdf_calibration_converter ~/my_calib/ my_calib.yaml
 ```
 then the program will parse all of the files in the folder to produce a single yaml file with the poses of the cameras in the IMU frame.
 Then, you can include the alphasense in your xacro by passing the file to the macro as follows:
