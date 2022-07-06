@@ -21,7 +21,7 @@ limitations under the License.
 <!-- YAML file containing the default values from CAD -->
 <xacro:property name="default_calib" value="$(find alphasense_description)/urdf/calibrations/default_calibration.yaml" />
 
-<xacro:macro name="alphasense" params="parent *origin name:=alphasense calib_file:=${default_calib}">
+<xacro:macro name="alphasense" params="parent *origin name:=alphasense calib_file:=${default_calib} four_cams:=false">
 
 <!-- load the YAML calibration file into a property -->
 <xacro:property name="calib" value="${load_yaml(calib_file)}"/>
@@ -35,7 +35,12 @@ limitations under the License.
   <link name="alphasense_mount">
     <visual>
       <geometry>
-        <mesh filename="package://alphasense_description/urdf/meshes/alphasense_simplified.dae" />
+        <xacro:if value="${four_cams}">
+          <mesh filename="package://alphasense_description/urdf/meshes/alphasense_simplified_4cams.dae" />
+        </xacro:if>
+        <xacro:unless value="${four_cams}">
+          <mesh filename="package://alphasense_description/urdf/meshes/alphasense_simplified.dae" />
+        </xacro:unless>
       </geometry>
     </visual>
 
@@ -108,16 +113,7 @@ limitations under the License.
     </visual>
   </link>
   
-  <link name="cam_top">
-    <visual>
-      <geometry>
-        <box size="1e-3 1e-3 1e-3" />
-      </geometry>
-      <material name="black">
-        <color rgba="0 0 0 1" />
-      </material>
-    </visual>
-  </link>
+
 
   <!-- front right camera which is cam0 in alphasense driver -->
   <joint name="imu_to_cam_front_right_joint" type="fixed">
@@ -145,18 +141,32 @@ limitations under the License.
     <child link="cam_front_left" />
   </joint>
 
-  <!-- top camera which is cam2 in alphasense driver, haven't calibrated yet -->
-  <joint name="imu_to_cam_top_joint" type="fixed">
-    <!--origin xyz="-0.00789 -0.07720 -0.01356" rpy="1.5733 0.00443 -0.0052"/-->
-    <origin xyz="${calib['imu_to_cam2']['x']} 
-                 ${calib['imu_to_cam2']['y']}
-                 ${calib['imu_to_cam2']['z']}"
-            rpy="${calib['imu_to_cam2']['roll']}
-                 ${calib['imu_to_cam2']['pitch']}
-                 ${calib['imu_to_cam2']['yaw']}"/>
-    <parent link="${name}_imu" />
-    <child link="cam_top" />
-  </joint>
+
+  <xacro:unless value="${four_cams}">
+    <link name="cam_top">
+      <visual>
+        <geometry>
+          <box size="1e-3 1e-3 1e-3" />
+        </geometry>
+        <material name="black">
+          <color rgba="0 0 0 1" />
+        </material>
+      </visual>
+    </link>
+  
+    <!-- top camera which is cam2 in alphasense driver, haven't calibrated yet -->
+    <joint name="imu_to_cam_top_joint" type="fixed">
+      <!--origin xyz="-0.00789 -0.07720 -0.01356" rpy="1.5733 0.00443 -0.0052"/-->
+      <origin xyz="${calib['imu_to_cam2']['x']} 
+                   ${calib['imu_to_cam2']['y']}
+                   ${calib['imu_to_cam2']['z']}"
+              rpy="${calib['imu_to_cam2']['roll']}
+                   ${calib['imu_to_cam2']['pitch']}
+                   ${calib['imu_to_cam2']['yaw']}"/>
+      <parent link="${name}_imu" />
+      <child link="cam_top" />
+    </joint>
+  </xacro:unless>
 
   <!-- side right camera which is cam3 in alphasense driver -->
   <joint name="imu_to_cam_side_right_joint" type="fixed">
