@@ -2,8 +2,10 @@
 <launch>
   <arg name="rviz" default="true" />
   <arg name="simulation" default="true" />
+  <arg name="four_cams" default="false" />
 
   <include file="$(find alphasense_description)/launch/load.launch">
+    <arg name="four_cams" value="$(arg four_cams)"/>
   </include>
 
   <node name="$(anon alphasense_state_publisher)" pkg="robot_state_publisher" type="robot_state_publisher" />
