@@ -24,7 +24,7 @@ limitations under the License.
 <xacro:macro name="alphasense" params="parent *origin name:=alphasense calib_file:=${default_calib} four_cams:=false">
 
 <!-- load the YAML calibration file into a property -->
-<xacro:property name="calib" value="${load_yaml(calib_file)}"/>
+<xacro:property name="calib" value="${xacro.load_yaml(calib_file)}"/>
 
 <joint name="${parent}_to_alphasense" type="fixed">
     <xacro:insert_block name="origin"/>
