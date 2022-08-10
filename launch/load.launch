@@ -2,6 +2,7 @@
 
 <launch>
   <arg name="model" default="$(find alphasense_description)/urdf/alphasense_standalone.urdf.xacro" />
+  <arg name="four_cams" default="false" />
 
-  <param name="robot_description" command="xacro $(arg model)" />
+  <param name="robot_description" command="xacro $(arg model) four_cams:=$(arg four_cams)" />
 </launch>
