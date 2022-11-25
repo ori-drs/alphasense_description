@@ -4,12 +4,29 @@
 #include <fstream>
 #include <yaml-cpp/yaml.h>
 #include <Eigen/Geometry>
+#include <unsupported/Eigen/MatrixFunctions>
+
+void yamlMatrixToEigen(const YAML::Node& matrix_node, Eigen::Matrix4d& T_out){
+  int rows = 4;
+  int cols = 4;
+
+
+  for(int i = 0; i < rows; i++){
+    std::vector<double> row = matrix_node[i].as<std::vector<double>>();
+    for(int j = 0; j < cols; j++){
+      T_out(i,j) = row[j];
+    }
+  }
+  std::cout << "Converted matrix \n " << T_out << std::endl;
+}
+
+
 
 
 void poseToYaml(YAML::Emitter& emitter,
                 std::string name,
-                const Eigen::Vector3d& pose,
-                const Eigen::Quaterniond& quat,
+                const Eigen::Vector3d& xyz,
+                const Eigen::Vector3d& rpy,
                 std::string comment = "")
 {
   emitter << YAML::Value << YAML::BeginMap << YAML::Key << name;
@@ -20,17 +37,11 @@ void poseToYaml(YAML::Emitter& emitter,
   for(size_t i = 0; i < 3; i++){
 
     emitter << YAML::Key << coordinates[i];
-    emitter << YAML::Value << pose(i);
+    emitter << YAML::Value << xyz(i);
     if(comment != ""){
       emitter << YAML::Comment(comment);
     }
   }
-
-  // quat to euler, ZYX convention (not used)
-  //Eigen::Vector3d rpy = quat.toRotationMatrix().eulerAngles(2, 1, 0).reverse();
-
-  // quat to Euler, XYZ convention
-  Eigen::Vector3d rpy = quat.toRotationMatrix().eulerAngles(0, 1, 2);
 
   for(size_t i = 0; i < 3; i++){
     emitter << YAML::Key << euler_names[i];
@@ -136,40 +147,30 @@ int main(int argc, char** argv){
       }
 
       YAML::Node camera_extrinsics_node_T = camera_extrinsics_node["T_cam_imu"];
-
-      int rows = 4;
-      int cols = 4;
-
       Eigen::Matrix4d T_cam_imu_eigen;
+      yamlMatrixToEigen(camera_extrinsics_node_T, T_cam_imu_eigen);
 
-
-      for(int i = 0; i < rows; i++){
-        std::vector<double> row = camera_extrinsics_node_T[i].as<std::vector<double>>();
-        for(int j = 0; j < cols; j++){
-          T_cam_imu_eigen(i,j) = row[j];
-        }
-      }
-
+      Eigen::Matrix4d T_imu_cam_eigen = T_cam_imu_eigen.inverse();
 
       //Eigen::Isometry3d transform_eigen = Eigen::Isometry3d::Identity();
-      Eigen::Matrix3d rotation_eigen = T_cam_imu_eigen.block<3,3>(0,0);
-      Eigen::Vector3d translation_eigen = T_cam_imu_eigen.block<3,1>(0,3);
-      Eigen::Quaterniond rotation_q(rotation_eigen);
-      // normalize the quaternion to ensure it is represents a valid rotation
-      rotation_q = rotation_q.normalized();
+      Eigen::Matrix3d rotation_eigen = T_imu_cam_eigen.block<3,3>(0,0);
+      Eigen::Vector3d I_r_IC = T_imu_cam_eigen.block<3,1>(0,3);
 
-      Eigen::Isometry3d iso = Eigen::Isometry3d::Identity();
+      Eigen::Vector3d rpy = rotation_eigen.eulerAngles(2, 1, 0).reverse();
 
-      iso.translate(translation_eigen);
-      iso.rotate(rotation_q);
-
-      iso = iso.inverse(); // iso = T_IC;
-
-      Eigen::Vector3d I_r_IC = iso.translation();
-      Eigen::Quaterniond q_IC = Eigen::Quaterniond(iso.rotation());
+      Eigen::Matrix3d rotation_eigen_orthogonalized = rotation_eigen *
+          (rotation_eigen.transpose() * rotation_eigen).sqrt().inverse();
 
 
-      poseToYaml(output, "imu_to_" + camera_name, I_r_IC, q_IC);
+      if(!rotation_eigen.isApprox(rotation_eigen_orthogonalized)){
+        std::cerr << "WARNING: the rotation matrix provided by calibration is not orthogonal!" << std::endl;
+        std::cerr << "Using the orthogonalized version of the matrix for now, but you should re-run the calibration!" << std::endl;
+        rotation_eigen = rotation_eigen_orthogonalized;
+      } else {
+        std::cerr << "Orthogonality check passed!" << std::endl;
+      }
+
+      poseToYaml(output, "imu_to_" + camera_name, I_r_IC, rpy);
 
     }
   }
