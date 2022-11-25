@@ -93,16 +93,6 @@ limitations under the License.
       </material>
     </visual>
   </link>
-  <link name="cam_top">
-    <visual>
-      <geometry>
-        <box size="1e-3 1e-3 1e-3"/>
-      </geometry>
-      <material name="black">
-        <color rgba="0 0 0 1"/>
-      </material>
-    </visual>
-  </link>
   <!-- front right camera which is cam0 in alphasense driver -->
   <joint name="imu_to_cam_front_right_joint" type="fixed">
     <!--origin xyz="0.0438 0.0485 -0.0109" rpy="1.5708 0.0043 1.5675 "/-->
@@ -117,10 +107,20 @@ limitations under the License.
     <parent link="alphasense_imu"/>
     <child link="cam_front_left"/>
   </joint>
+  <link name="cam_top">
+    <visual>
+      <geometry>
+        <box size="1e-3 1e-3 1e-3"/>
+      </geometry>
+      <material name="black">
+        <color rgba="0 0 0 1"/>
+      </material>
+    </visual>
+  </link>
   <!-- top camera which is cam2 in alphasense driver, haven't calibrated yet -->
   <joint name="imu_to_cam_top_joint" type="fixed">
     <!--origin xyz="-0.00789 -0.07720 -0.01356" rpy="1.5733 0.00443 -0.0052"/-->
-    <origin rpy="3.141592653589793                  0.0                  0.0" xyz="0.01                   -0.00855                  -0.035"/>
+    <origin rpy="3.141592653589793                    0.0                    0.0" xyz="0.01                     -0.00855                    -0.035"/>
     <parent link="alphasense_imu"/>
     <child link="cam_top"/>
   </joint>
