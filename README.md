@@ -63,6 +63,6 @@ Then, you can include the alphasense in your xacro by passing the file to the ma
 <!-- put your origin here -->
 </xacro:alphasense>
 ```
-for an example of the calibration output see the (default_calibration.yaml)[urdf/calibrations/default_calibration.yaml].
+for an example of the calibration output see the [default_calibration.yaml](urdf/calibrations/default_calibration.yaml).
 
 
