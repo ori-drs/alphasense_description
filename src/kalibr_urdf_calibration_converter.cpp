@@ -75,7 +75,8 @@ int main(int argc, char** argv){
     return -1;
   }
 
-  std::set<std::string> yaml_filenames_sorted;
+  std::set<std::string> yaml_file_absolute_path_sorted;
+  std::set<std::string> yaml_file_names;
   if(is_directory(extrinsics_path)){
     for (const auto & entry : directory_iterator(extrinsics_path)){
       //std::cout << "Found file " << entry.path().string() << std::endl;
@@ -83,12 +84,14 @@ int main(int argc, char** argv){
       // in the filename. Note the files will be
       if(entry.path().extension() == ".yaml" && entry.path().string().find("camchain-imucam") != std::string::npos){
         std::cout << "Found file " << entry.path().string() << " to be processed." << std::endl;
-        yaml_filenames_sorted.insert(entry.path().string());
+        yaml_file_absolute_path_sorted.insert(entry.path().string());
+        yaml_file_names.insert(entry.path().filename().string());
       }
     }
   } else {
     // if we are here, we have a single file to process
-    yaml_filenames_sorted.insert(extrinsics_path_str);
+    yaml_file_absolute_path_sorted.insert(extrinsics_path_str);
+
   }
 
   YAML::Emitter output;
@@ -97,26 +100,21 @@ int main(int argc, char** argv){
 
   output.SetBoolFormat(YAML::TrueFalseBool);
 
-  output << YAML::Comment("File generated from " + extrinsics_path_str);
+  std::stringstream ss;
+
+  for(auto& yf : yaml_file_names){
+    ss << yf << "\n";
+  }
+
+  output << YAML::Comment(
+      "File generated from:\n" + ss.str() +
+      "using the kalibr_urdf_calibration_converter node \n"
+      "from the alphasense_description package.\n"
+      "For more info: "
+      "https://github.com/ori-drs/alphasense_description");
   output << YAML::Newline;
-/*  output << YAML::BeginMap;
-  output << YAML::Key << "parent_to_imu";
 
-  poseToYaml(output, Eigen::Vector3d(0.005303,
-                                     0.037340,
-                                     0.063319),
-             Eigen::Quaterniond(1,0,0,0),
-             "Data is obtained from CAD");
-
-
-
-
-  output << YAML::Key << "base_to_mesh";
-  poseToYaml(output, Eigen::Vector3d(-0.364, 0.0, 0.0),
-             Eigen::Quaterniond(1,0,0,0),
-             "Data is obtained from CAD");
-*/
-  for(auto& item : yaml_filenames_sorted){
+  for(auto& item : yaml_file_absolute_path_sorted){
     std::cout << "Processing file " << item << std::endl;
 
     YAML::Node extrinsics_node;
