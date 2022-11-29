@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+
+<!-- 
+     This macro defines one Alphasense camera module. Two origins need to be defined: 
+     the first one represents the transformation from the parent frame to the frame
+     at the back of the module, located at the geometric centre between the screw holes, 
+     which is normally taken from CAD.
+     The second origin represents transformation between the IMU frame and the optical 
+     center of the camera, which is typically taken from calibration tools, such as Kalibr.
+
+     The alphasense_description package provides a tool to convert Kalibr outputs into 
+     a YAML format that can be then loaded from a xacro file.
+
+     Example usage of the macro:
+      <xacro:alphasense_camera_module name="cam_left" parent="frontier_mount">
+        <origin xyz="4.5e-3 31e-3 55e-3" rpy="0.0 0.0 ${pi/2}" />
+        <origin xyz="0.04653 -0.01775 -0.003" rpy="${-pi/2} 0.0 ${-pi/2}" />
+      </xacro:alphasense_camera_module>
+-->
+
+<robot name="alphasense_camera_module" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:macro name="alphasense_camera_module" params="name *origin *imu_cam_origin parent imu_name:=alphasense_imu">
+    <link name="${name}_link">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="package://alphasense_description/urdf/meshes/alphasense_camera_module.dae" />
+        </geometry>
+      </visual>
+    </link>
+    <joint name="${name}_to_${parent}" type="fixed">
+      <parent link="${parent}" />
+      <child link="${name}_link" />
+      <xacro:insert_block name="origin"/>
+    </joint>
+    <link name="${name}_optical_frame"/>
+    <joint name="${imu_name}_to_${name}_optical_frame" type="fixed">
+      <parent link="${imu_name}"/>
+      <child link="${name}_optical_frame"/>
+      <xacro:insert_block name="imu_cam_origin"/>
+    </joint>
+  </xacro:macro>
+</robot>
+
