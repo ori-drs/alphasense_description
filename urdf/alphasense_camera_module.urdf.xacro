@@ -33,11 +33,17 @@
       <child link="${name}_link" />
       <xacro:insert_block name="origin"/>
     </joint>
-    <link name="${name}_optical_frame"/>
-    <joint name="${imu_name}_to_${name}_optical_frame" type="fixed">
+    <link name="${name}_frame"/>
+    <joint name="${imu_name}_to_${name}_frame" type="fixed">
       <parent link="${imu_name}"/>
-      <child link="${name}_optical_frame"/>
+      <child link="${name}_frame"/>
       <xacro:insert_block name="imu_cam_origin"/>
+    </joint>
+    <link name="${name}_optical_frame"/>
+    <joint name="${name}_frame_to_${name}_optical_frame" type="fixed">
+      <parent link="${name}_frame"/>
+      <child link="${name}_optical_frame"/>
+      <origin xyz="0 0 0" rpy="0 -${pi/2} 0"/>
     </joint>
   </xacro:macro>
 </robot>
